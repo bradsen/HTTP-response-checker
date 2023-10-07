@@ -15,23 +15,24 @@ if [ ! -f "$filename" ]; then
   exit 1
 fi
 
+counter=0
 
 # Loop through each URL in the file and check the HTTP response code
 while read -r url; do
   # Send an HTTP GET request and store the response in a variable
   response=$(curl -s -o /dev/null -w "%{http_code}" -L --max-time 5 "$url")
-  
+
+  counter=$((counter + 1))
+
   # Get the final URL after following redirects 
   final_url=$(curl -s -o /dev/null -w "%{url_effective}" -L --max-time 5 "$url")
 
   # Check if the response code is not 000 (e.g., not empty)
   if [ "$response" != "000" ]; then
-    # Display the HTTP response code for the current URL
-    echo "HTTP Response Code for $final_url: $response"
-    
+
     # Append the URL to the output file
     echo "$response $final_url" >> "$output_file"
   fi
   
-  echo "HTTP Response Code for $url: $response"
+  echo "$counter) HTTP Response Code for $final_url: $response"
 done < "$filename"
