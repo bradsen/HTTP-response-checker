@@ -16,7 +16,7 @@ if [ ! -f "$filename" ]; then
     exit 1
 fi
 
-# Create an associative array to store URLs based on their HTTP status codes
+# Create an associative array to store unique URLs based on their HTTP status codes
 declare -A url_by_status
 
 # Loop through each URL in the file and check the HTTP response code
@@ -31,15 +31,15 @@ while read -r url; do
 
     # Check if the response code is not 000 (e.g., not empty)
     if [ "$response" != "000" ]; then
-        # Append the URL to the associative array based on its HTTP status code
-        url_by_status["$response"]+="$final_url\n"
+        # Add the URL to the set to remove duplicates
+        url_by_status["$response"]=$(echo -e "${url_by_status["$response"]}\n$final_url" | sort -u)
     fi
 
     echo "$counter) HTTP Response Code for $final_url: $response"
 
 done < "$filename"
 
-# Print URLs grouped by HTTP status code to the output file
+# Print unique URLs grouped by HTTP status code to the output file
 for status in "${!url_by_status[@]}"; do
     echo "$status" >> "$output_file"
     echo -e "${url_by_status["$status"]}" >> "$output_file"
