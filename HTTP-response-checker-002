@@ -1,0 +1,47 @@
+#!/bin/bash
+
+if [ $# -ne 2 ]; then
+    echo "Usage: $0 <domains> <output_file>"
+    exit 1
+fi
+
+# Get the filename from the command-line parameter
+filename="$1"
+output_file="$2"
+counter=0 
+
+# Check if the file exists
+if [ ! -f "$filename" ]; then
+    echo "File not found: $filename"
+    exit 1
+fi
+
+# Create an associative array to store URLs based on their HTTP status codes
+declare -A url_by_status
+
+# Loop through each URL in the file and check the HTTP response code
+while read -r url; do
+    # Send an HTTP GET request and store the response in a variable
+    response=$(curl -s -o /dev/null -w "%{http_code}" -L --max-time 5 "$url")
+    
+    # Get the final URL after following redirects 
+    final_url=$(curl -s -o /dev/null -w "%{url_effective}" -L --max-time 5 "$url")
+    
+    counter=$((counter + 1))
+
+    # Check if the response code is not 000 (e.g., not empty)
+    if [ "$response" != "000" ]; then
+        # Append the URL to the associative array based on its HTTP status code
+        url_by_status["$response"]+="$final_url\n"
+    fi
+
+    echo "$counter) HTTP Response Code for $final_url: $response"
+
+done < "$filename"
+
+# Print URLs grouped by HTTP status code to the output file
+for status in "${!url_by_status[@]}"; do
+    echo "$status" >> "$output_file"
+    echo -e "${url_by_status["$status"]}" >> "$output_file"
+    echo >> "$output_file"  # Add a newline between status codes
+done
