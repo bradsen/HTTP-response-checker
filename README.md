@@ -6,11 +6,11 @@ This is a bash script that verifies the validity of URL responses, specifically 
 
 Change file permission to executable
 ```
-chmod +x http-response-checker.sh
+chmod +x http-response-checker-002.sh
 ```
 Execute the file
 ```
-./http-response-checker.sh <domains> <output-file>
+./http-response-checker-002.sh <domains> <output-file>
 ```
 
 ## Result
